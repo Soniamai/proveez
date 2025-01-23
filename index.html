@@ -1,58 +1,64 @@
-document.addEventListener('DOMContentLoaded', () => {
-    const fechaInput = document.getElementById('fecha');
-    const horaSelect = document.getElementById('hora');
+<script defer>
+    document.addEventListener('DOMContentLoaded', () => {
+        const fechaInput = document.getElementById('fecha');
+        const horaSelect = document.getElementById('hora');
 
-    // Obtener eventos desde Google Calendar
-    async function obtenerDisponibilidad(fecha) {
-        try {
-            const inicio = new Date(`${fecha}T00:00:00Z`).toISOString();
-            const fin = new Date(`${fecha}T23:59:59Z`).toISOString();
+        // Obtener eventos desde Google Calendar
+        async function obtenerDisponibilidad(fecha) {
+            try {
+                const inicio = new Date(`${fecha}T00:00:00Z`).toISOString();
+                const fin = new Date(`${fecha}T23:59:59Z`).toISOString();
 
-            const url = `https://www.googleapis.com/calendar/v3/calendars/${CALENDAR_ID}/events?timeMin=${inicio}&timeMax=${fin}&key=${API_KEY}`;
-            const respuesta = await fetch(url);
+                const url = `https://www.googleapis.com/calendar/v3/calendars/${CALENDAR_ID}/events?timeMin=${inicio}&timeMax=${fin}&key=${API_KEY}`;
+                const respuesta = await fetch(url);
 
-            if (!respuesta.ok) {
-                throw new Error(`Error en la solicitud: ${respuesta.status}`);
+                if (!respuesta.ok) {
+                    throw new Error(`Error en la solicitud: ${respuesta.status}`);
+                }
+
+                const datos = await respuesta.json();
+
+                if (!datos.items || datos.items.length === 0) {
+                    return []; // No hay eventos disponibles
+                }
+
+                return datos.items.map(evento => ({
+                    inicio: evento.start.dateTime || evento.start.date,
+                    fin: evento.end.dateTime || evento.end.date,
+                }));
+            } catch (error) {
+                console.error('Error al obtener disponibilidad:', error);
+                alert('Hubo un problema al cargar los horarios. Por favor, inténtalo más tarde.');
+                return [];
             }
-
-            const datos = await respuesta.json();
-
-            if (!datos.items || datos.items.length === 0) {
-                return []; // No hay eventos disponibles
-            }
-
-            return datos.items.map(evento => ({
-                inicio: evento.start.dateTime || evento.start.date,
-                fin: evento.end.dateTime || evento.end.date,
-            }));
-        } catch (error) {
-            console.error('Error al obtener disponibilidad:', error);
-            alert('Hubo un problema al cargar los horarios. Por favor, inténtalo más tarde.');
-            return [];
-        }
-    }
-
-    fechaInput.addEventListener('change', async () => {
-        const fechaSeleccionada = fechaInput.value;
-        const eventos = await obtenerDisponibilidad(fechaSeleccionada);
-
-        horaSelect.innerHTML = '<option value="" disabled selected>Selecciona una hora</option>';
-
-        if (eventos.length === 0) {
-            const noDisponibles = document.createElement('option');
-            noDisponibles.value = '';
-            noDisponibles.textContent = 'No hay horarios disponibles';
-            noDisponibles.disabled = true;
-            horaSelect.appendChild(noDisponibles);
-            return;
         }
 
-        eventos.forEach(evento => {
-            const horaInicio = evento.inicio.split('T')[1].substring(0, 5);
-            const option = document.createElement('option');
-            option.value = horaInicio;
-            option.textContent = horaInicio;
-            horaSelect.appendChild(option);
+        fechaInput.addEventListener('change', async () => {
+            const fechaSeleccionada = fechaInput.value;
+            const eventos = await obtenerDisponibilidad(fechaSeleccionada);
+
+            horaSelect.innerHTML = '<option value="" disabled selected>Selecciona una hora</option>';
+
+            if (eventos.length === 0) {
+                const noDisponibles = document.createElement('option');
+                noDisponibles.value = '';
+                noDisponibles.textContent = 'No hay horarios disponibles';
+                noDisponibles.disabled = true;
+                horaSelect.appendChild(noDisponibles);
+                return;
+            }
+
+            eventos.forEach(evento => {
+                const horaInicio = evento.inicio.split('T')[1].substring(0, 5);
+                const option = document.createElement('option');
+                option.value = horaInicio;
+                option.textContent = horaInicio;
+                horaSelect.appendChild(option);
+            });
         });
     });
-});
+
+    function cerrarModal() {
+        document.getElementById('modalConfirmacion').style.display = 'none';
+    }
+</script>
