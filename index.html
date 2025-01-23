@@ -166,6 +166,7 @@
     document.addEventListener('DOMContentLoaded', () => {
         const fechaInput = document.getElementById('fecha');
         const horaSelect = document.getElementById('hora');
+        const agendaForm = document.getElementById('agendaForm');
 
         // Obtener eventos desde Google Calendar
         async function obtenerDisponibilidad(fecha) {
@@ -188,6 +189,24 @@
             }));
 
             return eventos;
+        }
+
+        // Crear evento en Google Calendar
+        async function crearEvento(evento) {
+            const url = `https://www.googleapis.com/calendar/v3/calendars/${CALENDAR_ID}/events?key=${API_KEY}`;
+            const respuesta = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(evento),
+            });
+            if (!respuesta.ok) {
+                console.error('Error al crear evento:', respuesta.statusText);
+                return null;
+            }
+            const datos = await respuesta.json();
+            return datos;
         }
 
         fechaInput.addEventListener('change', async () => {
@@ -214,6 +233,36 @@
                     horaSelect.appendChild(option);
                 }
             });
+        });
+
+        agendaForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const nombre = document.getElementById('nombre').value;
+            const direccion = document.getElementById('direccion').value;
+            const telefono = document.getElementById('telefono').value;
+            const descripcion = document.getElementById('descripcion').value;
+            const fecha = document.getElementById('fecha').value;
+            const hora = document.getElementById('hora').value;
+
+            const evento = {
+                summary: `Visita de ${nombre}`,
+                location: direccion,
+                description: `${descripcion}\nTeléfono: ${telefono}`,
+                start: {
+                    dateTime: `${fecha}T${hora}:00`,
+                    timeZone: 'America/Santiago',
+                },
+                end: {
+                    dateTime: `${fecha}T${hora + ":59"}:00`,
+                    timeZone: 'America/Santiago',
+                },
+            };
+
+            const resultado = await crearEvento(evento);
+            if (resultado) {
+                document.getElementById('modalConfirmacion').style.display = 'flex';
+            }
         });
     });
 
