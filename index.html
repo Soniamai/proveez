@@ -158,61 +158,61 @@
         </div>
     </div>
 
-    <script>
-        // Configuración de la API de Google Calendar
-        const API_KEY = 'AIzaSyAeGdOGsjKCnCvKgDowRZA4-t8NsnRla1c'; // Reemplaza con tu API Key
-        const CALENDAR_ID = 'proveez.cl@gmail.com'; // Reemplaza con tu Calendar ID
+   <script>
+    // Configuración de la API de Google Calendar
+    const API_KEY = 'AIzaSyAeGdOGsjKCnCvKgDowRZA4-t8NsnRla1c'; // Reemplaza con tu API Key
+    const CALENDAR_ID = 'proveez.cl@gmail.com'; // Reemplaza con tu Calendar ID
 
-        document.addEventListener('DOMContentLoaded', () => {
-            const fechaInput = document.getElementById('fecha');
-            const horaSelect = document.getElementById('hora');
+    document.addEventListener('DOMContentLoaded', () => {
+        const fechaInput = document.getElementById('fecha');
+        const horaSelect = document.getElementById('hora');
 
-            // Obtener eventos desde Google Calendar
-            async function obtenerDisponibilidad(fecha) {
-                const inicio = new Date(`${fecha}T00:00:00Z`).toISOString();
-                const fin = new Date(`${fecha}T23:59:59Z`).toISOString();
+        // Obtener eventos desde Google Calendar
+        async function obtenerDisponibilidad(fecha) {
+            const inicio = new Date(`${fecha}T00:00:00Z`).toISOString();
+            const fin = new Date(`${fecha}T23:59:59Z`).toISOString();
 
-                const url = `https://www.googleapis.com/calendar/v3/calendars/${CALENDAR_ID}/events?timeMin=${inicio}&timeMax=${fin}&key=${API_KEY}`;
-                const respuesta = await fetch(url);
-                const datos = await respuesta.json();
+            const url = `https://www.googleapis.com/calendar/v3/calendars/${CALENDAR_ID}/events?timeMin=${inicio}&timeMax=${fin}&key=${API_KEY}`;
+            const respuesta = await fetch(url);
+            const datos = await respuesta.json();
 
-                const eventos = datos.items.map(evento => ({
-                    inicio: evento.start.dateTime || evento.start.date,
-                    fin: evento.end.dateTime || evento.end.date,
-                }));
+            const eventos = datos.items.map(evento => ({
+                inicio: evento.start.dateTime || evento.start.date,
+                fin: evento.end.dateTime || evento.end.date,
+            }));
 
-                return eventos;
-            }
+            return eventos;
+        }
 
-            fechaInput.addEventListener('change', async () => {
-                const fechaSeleccionada = fechaInput.value;
-                const eventos = await obtenerDisponibilidad(fechaSeleccionada);
+        fechaInput.addEventListener('change', async () => {
+            const fechaSeleccionada = fechaInput.value;
+            const eventos = await obtenerDisponibilidad(fechaSeleccionada);
 
-                horaSelect.innerHTML = '<option value="" disabled selected>Selecciona una hora</option>';
+            horaSelect.innerHTML = '<option value="" disabled selected>Selecciona una hora</option>';
 
-                const horariosDisponibles = [
-                    '09:00', '10:00', '11:00', '14:00', '15:00', '16:00'
-                ];
+            const horariosDisponibles = [
+                '09:00', '10:00', '11:00', '14:00', '15:00', '16:00'
+            ];
 
-                horariosDisponibles.forEach(hora => {
-                    const ocupado = eventos.some(evento => {
-                        const horaInicio = evento.inicio.split('T')[1].substring(0, 5);
-                        return hora === horaInicio;
-                    });
-
-                    if (!ocupado) {
-                        const option = document.createElement('option');
-                        option.value = hora;
-                        option.textContent = hora;
-                        horaSelect.appendChild(option);
-                    }
+            horariosDisponibles.forEach(hora => {
+                const ocupado = eventos.some(evento => {
+                    const horaInicio = evento.inicio.split('T')[1]?.substring(0, 5);
+                    return hora === horaInicio;
                 });
+
+                if (!ocupado) {
+                    const option = document.createElement('option');
+                    option.value = hora;
+                    option.textContent = hora;
+                    horaSelect.appendChild(option);
+                }
             });
         });
+    });
 
-        function cerrarModal() {
-            document.getElementById('modalConfirmacion').style.display = 'none';
-        }
-    </script>
+    function cerrarModal() {
+        document.getElementById('modalConfirmacion').style.display = 'none';
+    }
+</script>
 </body>
 </html>
